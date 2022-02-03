@@ -1,3 +1,4 @@
 from functions import *
 
-readTxt("./cronograma.txt")
+
+show_execution_menu()

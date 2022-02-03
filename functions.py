@@ -1,88 +1,101 @@
 from datetime import datetime
 
+def show_execution_menu():
+    print("Menu:\n1.- Example 1\n2.- Example 2\n3.- Indicate path")
+    print("Choice a option: ", end="")
+    option = input()
+    option_execution(option)
+
+
+def option_execution(option):
+    file=""
+    if option=="1":
+        file="./cronograma1.txt"
+    elif option=="2":
+        file="./cronograma2.txt"
+    elif option=="3":
+        print("Write the file path and change the backslash of the path for slash")
+        file=input()
+    else:
+        print("Invalid option. Try again.")
+        file=show_execution_menu()
+    employee_data=readTxt(file)
+    employees_schedule_list=parse_employees_schedules_string_to_dictionary(employee_data)
+    cross_schedules=get_count_cross_schedules_per_couples_emloyees(employees_schedule_list)
+    show_cross_schedules_employees(cross_schedules)
+
 
 def readTxt(file_path):
     file = open(file_path, 'r')
     employee_data = file.readlines()
     file.close()
-    transform_employees_schedules_string_to_lists(employee_data)
+    return employee_data
 
 
-def transform_employees_schedules_string_to_lists(employee_data):
-    employees_list = []
-    schedule_list = []
+def parse_employees_schedules_string_to_dictionary(employee_data):
+    employees_schedules_dictionary={}
     for info in employee_data:
         employee, schedule = info.strip().split("=")
-        employees_list.append(employee)
-        schedule_list.append(schedule)
-    schedule_dictionary_day_workingday = create_dictionary_of_schedules_day_workingday(schedule_list)
-    join_employee_with_schedule(employees_list, schedule_dictionary_day_workingday)
+        employees_schedules_dictionary[employee]=create_dictionary_of_schedules_day_workingday(schedule)
+    return employees_schedules_dictionary
 
 
-def join_employee_with_schedule(employees_list, schedule_list_tranformed):
-    employees_schedule_list = {}
-    for i in range(len(employees_list)):
-        employees_schedule_list[employees_list[i]] = schedule_list_tranformed[i]
-    get_couples_emloyees(employees_schedule_list)
+def create_dictionary_of_schedules_day_workingday(schedule):
+    schedule_per_day_and_hour = {}
+    schedule_per_day = schedule.strip().split(",")
+    for day_schedule in schedule_per_day:
+        day_workingday = create_dictionary_schedule_per_day(day_schedule)
+        schedule_per_day_and_hour[day_workingday["day"]] = day_workingday["working day"]
+    return schedule_per_day_and_hour
 
 
-def create_dictionary_of_schedules_day_workingday(schedule_list):
-    schedule_employee_list = []
-    for schedule in schedule_list:
-        schedule_per_day_and_hour = {}
-        schedule_per_day = schedule.strip().split(",")
-        for day_schedule in schedule_per_day:
-            day_workingday = transform_string_to_datetime(day_schedule)
-            schedule_per_day_and_hour[day_workingday[0]] = day_workingday[1]
-        schedule_employee_list.append(schedule_per_day_and_hour)
-    return schedule_employee_list
-
-
-def transform_string_to_datetime(day_schedule):
-    working_day = []
+def create_dictionary_schedule_per_day(day_schedule):
+    schedule_of_the_day={}
     day = day_schedule[:2]
     hour = day_schedule[2:]
-    hour_from, hour_to = hour.strip().split("-")
-    working_day.append(datetime.strptime(hour_from, "%H:%M"))
-    working_day.append(datetime.strptime(hour_to.strip(), "%H:%M"))
-    return [day, working_day]
+    working_day=create_dictionary_start_finish_time(hour)
+    schedule_of_the_day["day"]=day
+    schedule_of_the_day["working day"]=working_day
+    return schedule_of_the_day
 
 
-def get_couples_emloyees(employees_schedule):
+def create_dictionary_start_finish_time(hour):
+    working_day = {}
+    hour_from, hour_to = hour.split("-")
+    working_day["Start Time"] = parse_hour_string_to_datetime(hour_from)
+    working_day["Finish Time"] = parse_hour_string_to_datetime(hour_to)
+    return working_day
+
+
+def parse_hour_string_to_datetime(hour):
+    return datetime.strptime(hour.strip(), "%H:%M")
+
+
+def get_count_cross_schedules_per_couples_emloyees(employees_schedule):
     cross_schedules = {}
-    couples_check = create_dictionary_couples_check(employees_schedule)
-    for employee1 in employees_schedule.keys():
-        for employee2 in employees_schedule.keys():
-            validation_first_employeeCheck = couples_check[employee2].__contains__(employee1)
-            validation_second_employeeCheck = couples_check[employee1].__contains__(employee2)
-            if employee1 != employee2 and (not validation_first_employeeCheck and not validation_second_employeeCheck):
-                couple_employee = employee1 + "-" + employee2
-                couples_check[employee1].append(employee2)
-                couples_check[employee2].append(employee1)
-                count = compare_schedules(employees_schedule[employee1], employees_schedule[employee2])
-                cross_schedules[couple_employee] = count
-    show_cross_schedules_employees(cross_schedules)
+    employees=list(employees_schedule.keys())
+    for i in range(len(employees)):
+        for j in range(i+1,len(employees)):
+            couple_employee = employees[i] + "-" + employees[j]
+            count = get_count_cross_schedules_per_coupes(employees_schedule[employees[i]], employees_schedule[employees[j]])
+            cross_schedules[couple_employee] = count
+    return cross_schedules
 
 
-def create_dictionary_couples_check(employees_schedule):
-    couples_check = {}
-    for employee1 in employees_schedule.keys():
-        couples_check[employee1] = []
-    return couples_check
-
-
-def compare_schedules(employee_schedule1, employee_schedule2):
+def get_count_cross_schedules_per_coupes(employee1_schedule, employee2_schedule):
     count = 0
-    for day in employee_schedule1.keys():
-        if employee_schedule2.keys().__contains__(day):
-            entry_time = employee_schedule2[day][0] >= employee_schedule1[day][0] and employee_schedule2[day][0] < \
-                         employee_schedule1[day][1]
-            closing_time = employee_schedule2[day][1] <= employee_schedule1[day][1] and employee_schedule2[day][1] > \
-                           employee_schedule1[day][0]
-            if entry_time and closing_time:
-                count += 1
+    for day in employee1_schedule.keys():
+        validation_employee1=validation_compare_schedules(employee1_schedule.get(day),employee2_schedule.get(day))
+        validation_employee2=validation_compare_schedules(employee2_schedule.get(day),employee1_schedule.get(day))
+        if validation_employee1 or validation_employee2:
+            count += 1
     return count
 
+def validation_compare_schedules(employee1_schedule,employee2_schedule):
+    if employee1_schedule!=None and employee2_schedule!=None:
+        entry_time = employee1_schedule["Start Time"] <= employee2_schedule["Start Time"]
+        closing_time = employee1_schedule["Finish Time"] >= employee2_schedule["Finish Time"]
+        return entry_time and closing_time
 
 def show_cross_schedules_employees(cross_schedules):
     for couples in cross_schedules:
