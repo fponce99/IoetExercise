@@ -39,7 +39,7 @@ function and methods that are used.
 3. Option 3
 
 
-![Option3](images/option3.png)
+![Option3](images/option_3.png)
 
 
 ### Project Structure
@@ -60,7 +60,8 @@ the code more readable and more understandable.
 ### Unit test
 For the testing part was used the library ***Unittest*** 
 that is installed for default when we install python in our
-operative system.
+operative system. TO run the test you should run the program and 
+choose the option 4.
 
 
 ![testing](images/testing.png)

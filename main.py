@@ -6,7 +6,7 @@ import os
 option=1
 while(option>0 and option<5):
     print("Menu:\n1.- Example 1\n2.- Example 2\n3.- Indicate path\n4.- Run test")
-    print("Choice a option: ", end="")
+    print("Choose an option: ", end="")
     option = int(input())
     file=""
     if option==1:
