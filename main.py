@@ -20,7 +20,7 @@ while(option>0 and option<5):
         os.system("python -m unittest -v test.py")
         os.system("python main.py")
         exit(0)
-    employee_data = readTxt(file)
+    employee_data = read_txt(file)
     employees_schedule_list=parse_employees_schedules_string_to_dictionary(employee_data)
     cross_schedules=create_dictionary_match_schedules_per_couples_employees(employees_schedule_list)
     show_cross_schedules_employees(cross_schedules)

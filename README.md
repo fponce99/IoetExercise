@@ -25,13 +25,12 @@ the times when two employees coincided in their schedule, and
 the fourth option is for testing execute to check the correct functionality of the 
 function and methods that are used. 
 1. Option 1
-# 
+#### 
 ![Option1](images/option1.png)
 2. Option 2
-# 
 ![Option2](images/option2.png)
 3. Option 3
-# 
+
 ![Option3](images/option3.png)
 ###Project Structure
 The project have 3 files where the ***main*** file is for 
